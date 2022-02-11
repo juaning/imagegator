@@ -10,12 +10,14 @@ const listStyle = {
 const ItemsList = () => {
   const [posts, setPosts] = useState({ nodes: []});
   const [page, setPage] = useState(0);
+  const [keepFetching, setKeepFetching] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const baseUrl = 'https://www.pinkvilla.com';
   const listRef = useRef();
 
   const fetchData = async (page = 0) => {
+    if (!keepFetching) { return }
     setIsError(false);
     setIsLoading(true);
     let url = `${baseUrl}/photo-gallery-feed-page`;
@@ -25,6 +27,10 @@ const ItemsList = () => {
     try {
       const result = await fetch(url);
       const data = await result.json();
+      if (data.nodes.length === 0) {
+        // If no data in page, stop fetching
+        setKeepFetching(false);
+      }
       const newPosts = { nodes: [...posts.nodes, ...data.nodes]}
       setPosts(newPosts);
     } catch (error) {
@@ -43,8 +49,7 @@ const ItemsList = () => {
 
       if (bottom) {
         // fetch to next page
-        // setPage(page + 1);
-        setIsLoading(true);
+        setPage(page + 1);
       }
     }
   } 
